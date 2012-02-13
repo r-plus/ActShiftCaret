@@ -9,7 +9,7 @@
 #define kRight "jp.r-plus.rightshiftcaret"
 
 static UIView *tv = nil;
-static BOOL isActve;
+static BOOL isActive;
 
 @interface UIView (Private) <UITextInput>
 @end
@@ -44,8 +44,8 @@ static void RightShiftCaretNotificationReceived(CFNotificationCenterRef center, 
 
 static void WillEnterForegroundNotificationReceived(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-  if (!isActve) {
-    isActve = YES;
+  if (!isActive) {
+    isActive = YES;
     CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(darwin, LeftShiftCaretNotificationReceived, LeftShiftCaretNotificationReceived, CFSTR(kLeft), NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(darwin, RightShiftCaretNotificationReceived, RightShiftCaretNotificationReceived, CFSTR(kRight), NULL, CFNotificationSuspensionBehaviorCoalesce);
@@ -54,8 +54,8 @@ static void WillEnterForegroundNotificationReceived(CFNotificationCenterRef cent
 
 static void DidEnterBackgroundNotificationReceived(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-  if (isActve) {
-    isActve = NO;
+  if (isActive) {
+    isActive = NO;
     CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterRemoveObserver(darwin, LeftShiftCaretNotificationReceived, CFSTR(kLeft), NULL);
     CFNotificationCenterRemoveObserver(darwin, RightShiftCaretNotificationReceived, CFSTR(kRight), NULL);
