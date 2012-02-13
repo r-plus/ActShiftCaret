@@ -87,14 +87,14 @@ static void DidEnterBackgroundNotificationReceived(CFNotificationCenterRef cente
 + (void)load
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  if (LASharedActvator.runningInsideSpringBoard) {
+  if (LASharedActivator.runningInsideSpringBoard) {
     ActShiftCaret *shiftcaret = [[self alloc] init];
-    if (![LASharedActvator hasSeenListenerWithName:@kLeft])
-      [LASharedActvator assignEvent:[LAEvent eventWithName:LAEventNameVolumeUpPress] toListenerWithName:@kLeft];
-    if (![LASharedActvator hasSeenListenerWithName:@kRight])
-      [LASharedActvator assignEvent:[LAEvent eventWithName:LAEventNameVolumeDownPress] toListenerWithName:@kRight];
-    [LASharedActvator registerListener:shiftcaret forName:@kLeft];
-    [LASharedActvator registerListener:shiftcaret forName:@kRight];
+    if (![LASharedActivator hasSeenListenerWithName:@kLeft])
+      [LASharedActivator assignEvent:[LAEvent eventWithName:LAEventNameVolumeUpPress] toListenerWithName:@kLeft];
+    if (![LASharedActivator hasSeenListenerWithName:@kRight])
+      [LASharedActivator assignEvent:[LAEvent eventWithName:LAEventNameVolumeDownPress] toListenerWithName:@kRight];
+    [LASharedActivator registerListener:shiftcaret forName:@kLeft];
+    [LASharedActivator registerListener:shiftcaret forName:@kRight];
     WillEnterForegroundNotificationReceived(nil, nil, nil, nil, nil);
   } else {
     CFNotificationCenterRef local = CFNotificationCenterGetLocalCenter();
@@ -105,7 +105,7 @@ static void DidEnterBackgroundNotificationReceived(CFNotificationCenterRef cente
   [pool drain];
 }
 
-- (void)activator:(LAActvator *)activator receiveEvent:(LAEvent *)event forListenerName:(NSString *)listenerName
+- (void)activator:(LAActivator *)activator receiveEvent:(LAEvent *)event forListenerName:(NSString *)listenerName
 {
   //if ([(SpringBoard *)UIApp _accessibilityFrontMostApplication]) {
     if ([listenerName isEqualToString:@kLeft])
