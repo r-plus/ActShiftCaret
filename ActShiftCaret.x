@@ -9,17 +9,17 @@
 #define kRight "jp.r-plus.rightshiftcaret"
 
 static UIView *tv = nil;
-static BOOL isActive;
+static BOOL isActve;
 
 @interface UIView (Private) <UITextInput>
 @end
 
-@interface ActiShiftCaret : NSObject <LAListener>
+@interface ActShiftCaret : NSObject <LAListener>
 @end
 
 static void ShiftCaret(BOOL isLeftSwipe)
 {
-  UITextPosition *position;
+  UITextPosition *position = nil;
   if ([tv respondsToSelector:@selector(positionFromPosition:inDirection:offset:)])
     position = isLeftSwipe ? [tv positionFromPosition:tv.selectedTextRange.start inDirection:UITextLayoutDirectionLeft offset:1]
       : [tv positionFromPosition:tv.selectedTextRange.end inDirection:UITextLayoutDirectionRight offset:1];
@@ -44,8 +44,8 @@ static void RightShiftCaretNotificationReceived(CFNotificationCenterRef center, 
 
 static void WillEnterForegroundNotificationReceived(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-  if (!isActive) {
-    isActive = YES;
+  if (!isActve) {
+    isActve = YES;
     CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterAddObserver(darwin, LeftShiftCaretNotificationReceived, LeftShiftCaretNotificationReceived, CFSTR(kLeft), NULL, CFNotificationSuspensionBehaviorCoalesce);
     CFNotificationCenterAddObserver(darwin, RightShiftCaretNotificationReceived, RightShiftCaretNotificationReceived, CFSTR(kRight), NULL, CFNotificationSuspensionBehaviorCoalesce);
@@ -54,8 +54,8 @@ static void WillEnterForegroundNotificationReceived(CFNotificationCenterRef cent
 
 static void DidEnterBackgroundNotificationReceived(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-  if (isActive) {
-    isActive = NO;
+  if (isActve) {
+    isActve = NO;
     CFNotificationCenterRef darwin = CFNotificationCenterGetDarwinNotifyCenter();
     CFNotificationCenterRemoveObserver(darwin, LeftShiftCaretNotificationReceived, CFSTR(kLeft), NULL);
     CFNotificationCenterRemoveObserver(darwin, RightShiftCaretNotificationReceived, CFSTR(kRight), NULL);
@@ -65,24 +65,36 @@ static void DidEnterBackgroundNotificationReceived(CFNotificationCenterRef cente
 %hook UIView
 - (BOOL)becomeFirstResponder
 {
-  if ([self respondsToSelector:@selector(setSelectedTextRange:)])
+  BOOL tmp = %orig;
+  if (tmp && [self respondsToSelector:@selector(setSelectedTextRange:)])
     tv = self;
-  return %orig;
+  return tmp;
+}
+
+// avoid crash for springboard observer.
+- (BOOL)resignFirstResponder
+{
+  BOOL tmp = %orig;
+  if (tmp && [self respondsToSelector:@selector(setSelectedTextRange:)]) {
+    if (tv == self) 
+      tv = nil;
+  }
+  return tmp;
 }
 %end
 
-@implementation ActiShiftCaret
+@implementation ActShiftCaret
 + (void)load
 {
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  if (LASharedActivator.runningInsideSpringBoard) {
-    ActiShiftCaret *shiftcaret = [[self alloc] init];
-    if (![LASharedActivator hasSeenListenerWithName:@kLeft])
-      [LASharedActivator assignEvent:[LAEvent eventWithName:LAEventNameVolumeUpPress mode:LAEventModeApplication] toListenerWithName:@kLeft];
-    if (![LASharedActivator hasSeenListenerWithName:@kRight])
-      [LASharedActivator assignEvent:[LAEvent eventWithName:LAEventNameVolumeDownPress mode:LAEventModeApplication] toListenerWithName:@kRight];
-    [LASharedActivator registerListener:shiftcaret forName:@kLeft];
-    [LASharedActivator registerListener:shiftcaret forName:@kRight];
+  if (LASharedActvator.runningInsideSpringBoard) {
+    ActShiftCaret *shiftcaret = [[self alloc] init];
+    if (![LASharedActvator hasSeenListenerWithName:@kLeft])
+      [LASharedActvator assignEvent:[LAEvent eventWithName:LAEventNameVolumeUpPress] toListenerWithName:@kLeft];
+    if (![LASharedActvator hasSeenListenerWithName:@kRight])
+      [LASharedActvator assignEvent:[LAEvent eventWithName:LAEventNameVolumeDownPress] toListenerWithName:@kRight];
+    [LASharedActvator registerListener:shiftcaret forName:@kLeft];
+    [LASharedActvator registerListener:shiftcaret forName:@kRight];
     WillEnterForegroundNotificationReceived(nil, nil, nil, nil, nil);
   } else {
     CFNotificationCenterRef local = CFNotificationCenterGetLocalCenter();
@@ -93,7 +105,7 @@ static void DidEnterBackgroundNotificationReceived(CFNotificationCenterRef cente
   [pool drain];
 }
 
-- (void)activator:(LAActivator *)activator receiveEvent:(LAEvent *)event forListenerName:(NSString *)listenerName
+- (void)activator:(LAActvator *)activator receiveEvent:(LAEvent *)event forListenerName:(NSString *)listenerName
 {
   //if ([(SpringBoard *)UIApp _accessibilityFrontMostApplication]) {
     if ([listenerName isEqualToString:@kLeft])

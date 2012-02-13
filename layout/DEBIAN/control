@@ -1,11 +1,11 @@
-Package: jp.r-plus.actishiftcaret
-Name: ActiShiftCaret
+Package: jp.r-plus.actshiftcaret
+Name: ActShiftCaret
 Depends: mobilesubstrate, libactivator (>= 1.5.8~beta2), firmware (>= 5.0)
 Version: 0.0.1
 Architecture: iphoneos-arm
 Description: Caret micromanager via activator
 Maintainer: BigBoss <bigboss@thebigboss.org>
-Author: r_plus <anasthasia.r+actishiftcaret@gmail.com>
+Author: r_plus <anasthasia.r+actshiftcaret@gmail.com>
 Section: Tweaks
 dev: rplus
 Priority: optional
